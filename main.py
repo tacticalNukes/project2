@@ -18,3 +18,5 @@ ev3 = EV3Brick()
 
 # Write your program here.
 ev3.speaker.beep()
+
+#alan e en llökig jävel
