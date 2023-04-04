@@ -18,3 +18,9 @@ ev3 = EV3Brick()
 
 # Write your program here.
 ev3.speaker.beep()
+
+left_motor = Motor(Port.B)
+right_motor = Motor(Port.C)
+color_sensor_in_left = ColorSensor(Port.S3)
+color_sensor_in_right = ColorSensor(Port.S2)
+distance_sensor_in1 = UltrasonicSensor(Port.S4)
