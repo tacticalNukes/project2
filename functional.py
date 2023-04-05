@@ -76,6 +76,7 @@ def pickup():
     arm_up(waitfor_sensor=True)
 
 def drop(color : Color):
+    rotateToColor(color=color)
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
