@@ -16,7 +16,6 @@ color_sensor = ColorSensor(Port.S2)
 touch_sensor = TouchSensor(Port.S1)
 
 COLORS = [Color.RED, Color.BLUE]
-total_time = None
 dropzones = {}
 
 ROT_SPEED = 50
@@ -55,40 +54,32 @@ def close_claw():
 
 def rotateToColor(color : Color):
     print(find_key(dropzones, color), color)
-    arm_rot_motor.run_time(speed=ROT_SPEED, time=(find_key(dropzones, color)+1) *1000, wait=True)
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
 
-def reset_rotation(color):
-    global total_time
-    _time = (total_time-find_key(dropzones, color)+1)*1000
-    arm_rot_motor.run_time(speed=-ROT_SPEED, time=_time, wait=True)
+def reset_rotation():
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
 
 def mesure():
     """Returns degress for total arm rotation"""
-    global total_time
-    start = time.time()
+    global total_angle
+    arm_rot_motor.reset_angle(angle=0)
     arm_rot_motor.run(speed=ROT_SPEED)
     print(dropzones)
     while not touch_sensor.pressed():
         tmp = color_sensor.color()
         if tmp in COLORS and tmp not in dropzones.values():
-            dropzones[time.time() - start] = tmp   
-    total_time = time.time() - start
+            dropzones[arm_rot_motor.angle()] = tmp
+    total_angle = arm_rot_motor.angle()
     print("Dropzones: ")
     print(dropzones)
     arm_rot_motor.stop()
     #Returns to start position
-    arm_rot_motor.run_time(speed=-ROT_SPEED, time=total_time*1000, wait=True)
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
     #return speed * (time.time() - start)
 
 def find_key(input_dict, value):
     """Find the key for a value in a dict"""
     return next((k for k, v in input_dict.items() if v == value), None)
-
-def config():
-    arm_raise_motor.reset_angle(angle=0)
-
-def configClaw():
-    claw_motor.reset_angle(angle=0)
 
 def initiation():
     arm_up(waitfor_sensor=False)
@@ -108,5 +99,4 @@ def drop(color : Color):
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
-    close_claw()
-    reset_rotation(find_key(dropzones, color))
+    reset_rotation()
