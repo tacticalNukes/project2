@@ -7,6 +7,7 @@ from pybricks.messaging import BluetoothMailboxServer, TextMailbox, LogicMailbox
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
+import project2.connection as connection
 import time
 
 ev3 = EV3Brick()
@@ -88,7 +89,7 @@ def find_key(input_dict, value):
     return next((k for k, v in input_dict.items() if v == value), None)
 
 def initiation():
-    connect()
+    connection()
     arm_up(waitfor_sensor=False)
     arm_raise_motor.reset_angle(angle=0)
     close_claw()
@@ -115,35 +116,3 @@ def drop(color : Color):
     open_claw()
     arm_up(waitfor_sensor=False)
     reset_rotation()
-
-def connect():
-  ev3.screen.clear()
-  ev3.screen.draw_text(5, 50, "Connecting...")
-  SERVER.wait_for_connection()
-  ev3.screen.clear()
-  ev3.screen.draw_text(5, 50, "Connected!")
-  ev3.speaker.beep()
-
-def sendcommands():
-  MBOX.send(MSG_DONE)
-  MBOX.wait()
-  MBOX.send(MSG_FINDPARK)
-  MBOX.wait()
-  MBOX.send(MSG_LEAVEPARK)
-  MBOX.wait()
-  MBOX.send(MSG_PARKED)
-  MBOX.wait()
-  MBOX.send(MSG_TURN)
-  MBOX.wait()
-  MBOX.send(MSG_RETURN)
-  
-  MBOX.send(MSG_DONE)
-
-MSG_DONE = "Done"
-MSG_FINDPARK = "Find Parking"
-MSG_LEAVEPARK = "Leave Parking"
-MSG_PARKED = "In Parking"
-MSG_TURN = "Turn 180"
-MSG_RETURN = "Return 180"
-
-sendcommands()
