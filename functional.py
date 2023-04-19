@@ -8,7 +8,6 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 from pybricks.messaging import BluetoothMailboxServer, BluetoothMailboxClient, TextMailbox
 
-import project2.connection as connection
 import time
 
 ev3 = EV3Brick()
@@ -22,41 +21,37 @@ touch_sensor = TouchSensor(Port.S1)
 COLORS = [Color.YELLOW, Color.GREEN, Color.RED, Color.BLUE]
 dropzones = {}
 
-ROT_SPEED = 50
+ROT_SPEED = 150
 
 def getColorOfObject():
     tmp = color_sensor.color()
     if tmp in COLORS:
-        print(tmp)
         return tmp
     return None
 
 def arm_down():
-    arm_raise_motor.run_until_stalled(speed=50, duty_limit=7)
-    print(arm_raise_motor.angle())
     print("Arm Down")
+    arm_raise_motor.run_until_stalled(speed=230, then=Stop.COAST, duty_limit=20)
 
 def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=315, then=Stop.HOLD, wait=True)
-        print("Checking Color")
+        arm_raise_motor.run_target(speed=60, target_angle=340, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
-    arm_raise_motor.run_until_stalled(speed=-80, then=Stop.HOLD, duty_limit=20)
+        ev3.light.on(color)
+    arm_raise_motor.run_until_stalled(speed=-120, then=Stop.HOLD, duty_limit=30)
 
     if waitfor_sensor : return color
 
 def open_claw():
-    claw_motor.run_target(speed=60, target_angle=-90, then=Stop.HOLD, wait=True)
     print("Claw open")
+    claw_motor.run_target(speed=80, target_angle=-90, then=Stop.HOLD, wait=True)
 
 def close_claw():
-    claw_motor.run_until_stalled(speed=30, then=Stop.HOLD, duty_limit=80)
+    claw_motor.run_until_stalled(speed=50, then=Stop.HOLD, duty_limit=80)
     return claw_motor.angle()
-    # Om vinkeln är mindre än 5 finns ett objekt
-    print("Claw Closed")
 
 def rotateToColor(color : Color):
     print(find_key(dropzones, color), color)
@@ -74,7 +69,6 @@ def mesure():
     global total_angle
     arm_rot_motor.reset_angle(angle=0)
     arm_rot_motor.run(speed=ROT_SPEED)
-    print(dropzones)
     while not touch_sensor.pressed():
         tmp = color_sensor.color()
         if tmp in COLORS and tmp not in dropzones.values():
@@ -89,35 +83,59 @@ def find_key(input_dict, value):
     return next((k for k, v in input_dict.items() if v == value), None)
 
 def initiation():
-    mailbox = connection.connect(ev3)
+    #mailbox = connection.connect(ev3)
     arm_up(waitfor_sensor=False)
     arm_raise_motor.reset_angle(angle=0)
     close_claw()
     claw_motor.reset_angle(angle=0)
-    if mailbox["type"] == "client":
-        mailbox["mbox"].wait_for_mail()
+    # if mailbox["type"] == "client":
+    #     mailbox["mbox"].wait_for_mail()
     mesure()
-    if mailbox["type"] == "client":
-        reset_to_pickupzone()
-    return mailbox
+    reset_to_pickupzone()
+    # if mailbox["type"] == "client":
+    #     reset_to_pickupzone()
+    # return mailbox
 
 def checkobject_ispresent(color : Color):
+    if color == Color.NONE: return None
+    ev3.light.off()
     rotateToColor(color=color)
     open_claw()
     arm_down()
-    close_claw()
+    angle = close_claw()
+    if abs(angle) < 5:    
+        ev3.light.on(Color.RED)
+    else:
+        ev3.light.on(Color.GREEN)
+    open_claw()
+    arm_up(waitfor_sensor=False)
+    return color
     
-def pickup():
+def pickup(mailbox):
+    #reset_to_pickupzone(mailbox["type"])
+    reset_to_pickupzone()
     open_claw()
     arm_down()
-    close_claw()
+    angle = close_claw()
+    i = 0
+    while abs(angle) < 5:
+        i = i+1
+        open_claw()
+        arm_up(waitfor_sensor=False)
+        if i == 3:
+            #mailbox["mbox"].send("Wait for new order")
+            time.sleep(15) # ordern har kommit
+            i = 0
+        else:
+            time.sleep(3)
+        arm_down()
+        angle = close_claw()
     color = arm_up(waitfor_sensor=True)
-    ev3.light = color
     return color
 
-def drop(color : Color, mailbox):
+def drop(color : Color):
     rotateToColor(color=color)
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
-    reset_to_pickupzone(mailbox["type"])
+    # reset_to_pickupzone(mailbox["type"])
