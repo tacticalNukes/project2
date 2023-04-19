@@ -1,39 +1,59 @@
-def connect():
-  while not connected:
-        if Button.CENTER in ev3.buttons.pressed():
-            ev3.speaker.beep()
-            connect()
-            break
+from pybricks.parameters import Color, Button
+from pybricks.tools import wait
+from pybricks.messaging import BluetoothMailboxClient, BluetoothMailboxServer, TextMailbox
+
+hostRobot = 'robot1'
+
+def connect(ev3):
+    while True:
+        if Button.RIGHT in ev3.buttons.pressed():
+            bluetoothInfo = get_mailbox(True)
+            ev3.light.on(Color.RED)
+            ev3.screen.print("Awaiting Connection...")
+            bluetoothInfo[0].wait_for_connection(1)
+            ev3.light.off()
+            wait(1000)
+            ev3.light.on(Color.GREEN)
+            return { 'type': 'Server', 'mbox':bluetoothInfo[1] }
+        if Button.LEFT in ev3.buttons.pressed():
+            bluetoothInfo = get_mailbox(False)
+            ev3.screen.print("Connecting")
+            ev3.light.on(Color.RED)
+            bluetoothInfo[0].connect(hostRobot)
+            ev3.light.off()
+            wait(1000)
+            ev3.light.on(Color.GREEN)
+            ev3.screen.print("Connected")
+            return { 'type': 'Client', 'mbox':bluetoothInfo[1] }
         wait(20)
-    wait(200)
 
-  ev3.screen.clear()
-  ev3.screen.draw_text(5, 50, "Connecting...")
-  SERVER.wait_for_connection()
-  ev3.screen.clear()
-  ev3.screen.draw_text(5, 50, "Connected!")
-  ev3.speaker.beep()
+def get_mailbox(isServer):
+    if isServer:
+        connection = BluetoothMailboxServer()
+        mailbox = TextMailbox('host',connection)
+    else:
+        connection = BluetoothMailboxClient()
+        mailbox = TextMailbox('host',connection)
+    return connection,mailbox
 
-def sendcommands():
-  MBOX.send(MSG_DONE)
-  MBOX.wait()
-  MBOX.send(MSG_FINDPARK)
-  MBOX.wait()
-  MBOX.send(MSG_LEAVEPARK)
-  MBOX.wait()
-  MBOX.send(MSG_PARKED)
-  MBOX.wait()
-  MBOX.send(MSG_TURN)
-  MBOX.wait()
-  MBOX.send(MSG_RETURN)
-  
-  MBOX.send(MSG_DONE)
+def wait_mail(string, mbox, ev3):
+    received = False
+    ev3.light.on(Color.RED)
+    color_val = 0
+    while not received:
+        if mbox.read() == string:
+            received = True
+        if color_val % 300 == 0:
+            ev3.light.on(Color.ORANGE)
+        elif color_val % 300 == 150:
+            ev3.light.on(Color.RED)
+        wait(10)
+        color_val += 1
+    ev3.light.on(Color.GREEN)
+    return True
 
-MSG_DONE = "Done"
-MSG_FINDPARK = "Find Parking"
-MSG_LEAVEPARK = "Leave Parking"
-MSG_PARKED = "In Parking"
-MSG_TURN = "Turn 180"
-MSG_RETURN = "Return 180"
 
-sendcommands()
+def mail_pickupaviable(mailbox):
+    if mailbox.read() != "pickingUp":
+        return True
+    return False

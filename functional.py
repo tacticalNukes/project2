@@ -138,4 +138,16 @@ def drop(color : Color):
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
-    # reset_to_pickupzone(mailbox["type"])
+    reset_to_pickupzone(mailbox["type"])
+
+def check_buttons():
+    if Button.LEFT in ev3.buttons.pressed():
+        a_color = dropzones.values()[0]
+        return a_color
+    elif Button.UP in ev3.buttons.pressed():
+        a_color = dropzones.values()[1]
+        return a_color
+    elif Button.RIGHT in ev3.buttons.pressed():
+        a_color = dropzones.values()[2]
+        return a_color
+    return Color.NONE
