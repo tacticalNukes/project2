@@ -51,3 +51,9 @@ def wait_mail(string, mbox, ev3):
         color_val += 1
     ev3.light.on(Color.GREEN)
     return True
+
+
+def mail_pickupaviable(mailbox):
+    if mailbox.read() != "pickingUp":
+        return True
+    return False

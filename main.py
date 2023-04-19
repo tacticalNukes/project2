@@ -3,9 +3,7 @@ import functional as f
 from pybricks.parameters import Port, Stop, Direction, Button, Color
 import connection
 
-host = connection.connect()
-
-f.initiation()
+mailbox = f.initiation()
 
 alive = True
 while alive:
