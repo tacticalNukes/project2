@@ -6,6 +6,7 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.messaging import BluetoothMailboxServer, TextMailbox, LogicMailbox
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
+from pybricks.messaging import BluetoothMailboxServer, BluetoothMailboxClient, TextMailbox
 
 import project2.connection as connection
 import time
@@ -20,8 +21,6 @@ touch_sensor = TouchSensor(Port.S1)
 
 COLORS = [Color.YELLOW, Color.GREEN, Color.RED, Color.BLUE]
 dropzones = {}
-SERVER = BluetoothMailboxServer()
-MBOX = TextMailbox('box', SERVER)
 
 ROT_SPEED = 50
 
@@ -63,8 +62,12 @@ def rotateToColor(color : Color):
     print(find_key(dropzones, color), color)
     arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
 
-def reset_rotation():
-    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
+def reset_to_pickupzone(_type = ""):
+    if _type == "host":
+        global total_angle
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle, then=Stop.HOLD, wait=True)
+    else:
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
 
 def mesure():
     """Returns degress for total arm rotation"""
@@ -80,21 +83,23 @@ def mesure():
     print("Dropzones: ")
     print(dropzones)
     arm_rot_motor.stop()
-    #Returns to start position
-    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
-    #return speed * (time.time() - start)
 
 def find_key(input_dict, value):
     """Find the key for a value in a dict"""
     return next((k for k, v in input_dict.items() if v == value), None)
 
 def initiation():
-    connection()
+    mailbox = connection.connect(ev3)
     arm_up(waitfor_sensor=False)
     arm_raise_motor.reset_angle(angle=0)
     close_claw()
     claw_motor.reset_angle(angle=0)
+    if mailbox["type"] == "client":
+        mailbox["mbox"].wait_for_mail()
     mesure()
+    if mailbox["type"] == "client":
+        reset_to_pickupzone()
+    return mailbox
 
 def checkobject_ispresent(color : Color):
     rotateToColor(color=color)
@@ -110,9 +115,9 @@ def pickup():
     ev3.light = color
     return color
 
-def drop(color : Color):
+def drop(color : Color, mailbox):
     rotateToColor(color=color)
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
-    reset_rotation()
+    reset_to_pickupzone(mailbox["type"])

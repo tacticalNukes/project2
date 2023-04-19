@@ -1,5 +1,3 @@
-
-
 def connect():
   while not connected:
         if Button.CENTER in ev3.buttons.pressed():
