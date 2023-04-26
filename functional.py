@@ -122,8 +122,8 @@ def checkobject_ispresent(color : Color):
     return color
 
 def pickup(mailbox):
-    if mailbox["mbox"].read() == "Other":
-        return None
+    while mailbox["mbox"].read() != "Other" and mailbox["type"] == "client":
+        time.sleep(1)
     print(mailbox["mbox"].read())
     reset_to_pickupzone()
     open_claw()
