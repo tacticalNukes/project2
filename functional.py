@@ -127,10 +127,11 @@ def pickup(mailbox):
     reset_to_pickupzone()
     open_claw()
     arm_down()
-    if mailbox["type"] == "client":
-        mailbox["mbox"].send("Done with pickup")
-        return
     angle = close_claw()
+    if mailbox["type"] == "client":
+        color = arm_up(waitfor_sensor=True)
+        mailbox["mbox"].send("Done with pickup")
+        return color
     i = 0
     while abs(angle) < 5:
         i = i+1
@@ -150,11 +151,11 @@ def pickup(mailbox):
 
 def drop(mailbox, color : Color):
     dropspot = rotateToColor(color=color)
-    if mailbox["type"] == "host":
-        mailbox["mbox"].send(dropspot)
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
+    if mailbox["type"] == "host":
+        mailbox["mbox"].send(dropspot)
 
 def check_buttons():
     if Button.LEFT in ev3.buttons.pressed() and len(dropzones) <= 1:
