@@ -155,6 +155,7 @@ def drop(mailbox, color : Color):
     open_claw()
     arm_up(waitfor_sensor=False)
     if mailbox["type"] == "host":
+        print(dropspot)
         mailbox["mbox"].send(dropspot)
 
 def check_buttons():
