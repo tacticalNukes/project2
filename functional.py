@@ -155,8 +155,10 @@ def drop(mailbox, color : Color):
     open_claw()
     arm_up(waitfor_sensor=False)
     if mailbox["type"] == "host":
-        print(dropspot)
-        mailbox["mbox"].send(dropspot)
+        if dropspot == "Other":
+            mailbox["mbox"].send("Other")
+        else:
+            mailbox["mbox"].send("Total Angle")
 
 def check_buttons():
     if Button.LEFT in ev3.buttons.pressed() and len(dropzones) <= 1:
