@@ -123,7 +123,7 @@ def checkobject_ispresent(color : Color):
 
 def pickup(mailbox):
     if mailbox["mbox"].read() == "Other":
-        return
+        return None
     reset_to_pickupzone()
     open_claw()
     arm_down()
