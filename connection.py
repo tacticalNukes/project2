@@ -2,11 +2,11 @@ from pybricks.parameters import Color, Button
 from pybricks.tools import wait
 from pybricks.messaging import BluetoothMailboxClient, BluetoothMailboxServer, TextMailbox
 
-hostRobot = 'robot1'
+hostRobot = 'ev3dev'
 
 def connect(ev3):
     while True:
-        if Button.RIGHT in ev3.buttons.pressed():
+        if Button.LEFT in ev3.buttons.pressed():
             bluetoothInfo = get_mailbox(True)
             ev3.light.on(Color.RED)
             ev3.screen.print("Awaiting Connection...")
@@ -14,8 +14,8 @@ def connect(ev3):
             ev3.light.off()
             wait(1000)
             ev3.light.on(Color.GREEN)
-            return { 'type': 'Server', 'mbox':bluetoothInfo[1] }
-        if Button.LEFT in ev3.buttons.pressed():
+            return { 'type': 'host', 'mbox':bluetoothInfo[1] }
+        if Button.RIGHT in ev3.buttons.pressed():
             bluetoothInfo = get_mailbox(False)
             ev3.screen.print("Connecting")
             ev3.light.on(Color.RED)
@@ -24,7 +24,7 @@ def connect(ev3):
             wait(1000)
             ev3.light.on(Color.GREEN)
             ev3.screen.print("Connected")
-            return { 'type': 'Client', 'mbox':bluetoothInfo[1] }
+            return { 'type': 'client', 'mbox':bluetoothInfo[1] }
         wait(20)
 
 def get_mailbox(isServer):
@@ -51,9 +51,3 @@ def wait_mail(string, mbox, ev3):
         color_val += 1
     ev3.light.on(Color.GREEN)
     return True
-
-
-def mail_pickupaviable(mailbox):
-    if mailbox.read() != "pickingUp":
-        return True
-    return False

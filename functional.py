@@ -9,6 +9,7 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 from pybricks.messaging import BluetoothMailboxServer, BluetoothMailboxClient, TextMailbox
 
 import time
+import connection
 
 ev3 = EV3Brick()
 
@@ -54,15 +55,15 @@ def close_claw():
     return claw_motor.angle()
 
 def rotateToColor(color : Color):
+    global total_angle
     print(find_key(dropzones, color), color)
-    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
-
-def reset_to_pickupzone(_type = ""):
-    if _type == "host":
-        global total_angle
-        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle, then=Stop.HOLD, wait=True)
+    if color not in dropzones.values():
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle, wait=True)
     else:
-        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
+
+def reset_to_pickupzone():
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
 
 def mesure():
     """Returns degress for total arm rotation"""
@@ -83,21 +84,23 @@ def find_key(input_dict, value):
     return next((k for k, v in input_dict.items() if v == value), None)
 
 def initiation():
-    #mailbox = connection.connect(ev3)
+    mailbox = connection.connect(ev3)
     arm_up(waitfor_sensor=False)
     arm_raise_motor.reset_angle(angle=0)
     close_claw()
     claw_motor.reset_angle(angle=0)
-    # if mailbox["type"] == "client":
-    #     mailbox["mbox"].wait_for_mail()
+    if mailbox["type"] == "client":
+        mailbox["mbox"].wait_new()
     mesure()
-    reset_to_pickupzone()
-    # if mailbox["type"] == "client":
-    #     reset_to_pickupzone()
-    # return mailbox
+    if mailbox["type"] == "client":
+        reset_to_pickupzone()
+    else:
+        reset_to_pickupzone()
+        mailbox["mbox"].send("Done with initiation")
+    return mailbox
 
 def checkobject_ispresent(color : Color):
-    if color == Color.NONE: return None
+    if color == Color.BLACK: return color
     ev3.light.off()
     rotateToColor(color=color)
     open_claw()
@@ -111,8 +114,15 @@ def checkobject_ispresent(color : Color):
     arm_up(waitfor_sensor=False)
     return color
     
+def mail_pickupaviable(mailbox):
+    if mailbox.read() != "pickingUp":
+        return True
+    return False
+
 def pickup(mailbox):
-    #reset_to_pickupzone(mailbox["type"])
+    while not mail_pickupaviable(mailbox=mailbox["mbox"]):
+        time.sleep(2)
+    mailbox["mbox"].send("pickingUp")
     reset_to_pickupzone()
     open_claw()
     arm_down()
@@ -131,6 +141,7 @@ def pickup(mailbox):
         arm_down()
         angle = close_claw()
     color = arm_up(waitfor_sensor=True)
+    mailbox["mbox"].send("Done with pickup")
     return color
 
 def drop(color : Color):
@@ -138,7 +149,6 @@ def drop(color : Color):
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
-    reset_to_pickupzone(mailbox["type"])
 
 def check_buttons():
     if Button.LEFT in ev3.buttons.pressed():
@@ -150,4 +160,4 @@ def check_buttons():
     elif Button.RIGHT in ev3.buttons.pressed():
         a_color = dropzones.values()[2]
         return a_color
-    return Color.NONE
+    return Color.BLACK
