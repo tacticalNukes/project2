@@ -59,8 +59,10 @@ def rotateToColor(color : Color):
     print(find_key(dropzones, color), color)
     if color not in dropzones.values():
         arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle, wait=True)
+        return "Total angle"
     else:
         arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
+        return "Other"
 
 def reset_to_pickupzone():
     arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
@@ -96,8 +98,13 @@ def initiation():
         reset_to_pickupzone()
     else:
         reset_to_pickupzone()
-        mailbox["mbox"].send("Done with initiation")
+        mailbox["mbox"].send("Other")
     return mailbox
+
+def mail_pickupavalible(mailbox):
+    if mailbox["mbox"].read() != "pickingup":
+        return True
+    return False
 
 def checkobject_ispresent(color : Color):
     if color == Color.BLACK: return color
@@ -106,26 +113,23 @@ def checkobject_ispresent(color : Color):
     open_claw()
     arm_down()
     angle = close_claw()
-    if abs(angle) < 5:    
+    if abs(angle) < 5:
         ev3.light.on(Color.RED)
     else:
         ev3.light.on(Color.GREEN)
     open_claw()
     arm_up(waitfor_sensor=False)
     return color
-    
-def mail_pickupaviable(mailbox):
-    if mailbox.read() != "pickingUp":
-        return True
-    return False
 
 def pickup(mailbox):
-    while not mail_pickupaviable(mailbox=mailbox["mbox"]):
-        time.sleep(2)
-    mailbox["mbox"].send("pickingUp")
+    if mailbox["mbox"].read() == "Other":
+        return
     reset_to_pickupzone()
     open_claw()
     arm_down()
+    if mailbox["type"] == "client":
+        mailbox["mbox"].send("Done with pickup")
+        return
     angle = close_claw()
     i = 0
     while abs(angle) < 5:
@@ -144,20 +148,22 @@ def pickup(mailbox):
     mailbox["mbox"].send("Done with pickup")
     return color
 
-def drop(color : Color):
-    rotateToColor(color=color)
+def drop(mailbox, color : Color):
+    dropspot = rotateToColor(color=color)
+    if mailbox["type"] == "host":
+        mailbox["mbox"].send(dropspot)
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
 
 def check_buttons():
-    if Button.LEFT in ev3.buttons.pressed():
+    if Button.LEFT in ev3.buttons.pressed() and len(dropzones) <= 1:
         a_color = dropzones.values()[0]
         return a_color
-    elif Button.UP in ev3.buttons.pressed():
+    elif Button.UP in ev3.buttons.pressed() and len(dropzones) <= 2:
         a_color = dropzones.values()[1]
         return a_color
-    elif Button.RIGHT in ev3.buttons.pressed():
+    elif Button.RIGHT in ev3.buttons.pressed()  and len(dropzones) <= 3:
         a_color = dropzones.values()[2]
         return a_color
     return Color.BLACK

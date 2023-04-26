@@ -8,4 +8,4 @@ alive = True
 while alive:
     if f.checkobject_ispresent(f.check_buttons()) != Color.BLACK:
         continue
-    f.drop(f.pickup(mailbox))
+    f.drop(mailbox, f.pickup(mailbox))
