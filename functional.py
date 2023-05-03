@@ -57,15 +57,14 @@ def close_claw():
 def rotateToColor(color : Color):
     global total_angle
     print(find_key(dropzones, color), color)
-    if color not in dropzones.values():
-        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle, wait=True)
-        return "Total angle"
-    else:
-        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
-        return "Other"
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
 
-def reset_to_pickupzone():
-    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
+def reset_to_pickupzone(_type = ""):
+    if _type == "host":
+        global total_angle
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle, then=Stop.HOLD, wait=True)
+    else:
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
 
 def mesure():
     """Returns degress for total arm rotation"""
@@ -95,9 +94,9 @@ def initiation():
         mailbox["mbox"].wait_new()
     mesure()
     if mailbox["type"] == "client":
-        reset_to_pickupzone()
+        reset_to_pickupzone(mailbox["type"])
     else:
-        reset_to_pickupzone()
+        reset_to_pickupzone(mailbox["type"])
         mailbox["mbox"].send("Other")
     return mailbox
 
@@ -125,7 +124,7 @@ def pickup(mailbox):
     while mailbox["mbox"].read() == "Other": # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
         time.sleep(1)
     print(mailbox["mbox"].read())
-    reset_to_pickupzone()
+    reset_to_pickupzone(mailbox["type"])
     open_claw()
     arm_down()
     angle = close_claw()
