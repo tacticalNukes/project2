@@ -122,7 +122,7 @@ def checkobject_ispresent(color : Color):
     return color
 
 def pickup(mailbox):
-    while mailbox["mbox"].read() == "Other" and mailbox["type"] == "client":
+    while mailbox["mbox"].read() == "Other": # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
         time.sleep(1)
     print(mailbox["mbox"].read())
     reset_to_pickupzone()
