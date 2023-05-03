@@ -51,7 +51,7 @@ def open_claw():
     claw_motor.run_target(speed=80, target_angle=-90, then=Stop.HOLD, wait=True)
 
 def close_claw():
-    claw_motor.run_until_stalled(speed=50, then=Stop.HOLD, duty_limit=80)
+    claw_motor.run_until_stalled(speed=50, then=Stop.HOLD, duty_limit=100)
     return claw_motor.angle()
 
 def rotateToColor(color : Color):
