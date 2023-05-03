@@ -42,7 +42,7 @@ def arm_up(waitfor_sensor):
         while color == None:
             color = getColorOfObject()
         ev3.light.on(color)
-    arm_raise_motor.run_until_stalled(speed=-120, then=Stop.HOLD, duty_limit=30)
+    arm_raise_motor.run_target(speed=-120, target_angle=200, then=Stop.HOLD, wait=True)
 
     if waitfor_sensor : return color
 
@@ -121,16 +121,14 @@ def checkobject_ispresent(color : Color):
     return color
 
 def pickup(mailbox):
-    while mailbox["mbox"].read() == "Other": # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
+    while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
         time.sleep(1)
-    print(mailbox["mbox"].read())
+
     reset_to_pickupzone(mailbox["type"])
     open_claw()
     arm_down()
     angle = close_claw()
-    if mailbox["type"] == "client":
-        color = arm_up(waitfor_sensor=True)
-        return color
+    
     i = 0
     while abs(angle) < 5:
         i = i+1
