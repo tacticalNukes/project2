@@ -123,6 +123,7 @@ def checkobject_ispresent(color : Color):
 def pickup(mailbox):
     while mailbox["mbox"].read() == "Other": # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
         time.sleep(1)
+    wait_mail("pickupAvaiable",mailbox,ev3)
     print(mailbox["mbox"].read())
     reset_to_pickupzone(mailbox["type"])
     open_claw()
@@ -145,6 +146,15 @@ def pickup(mailbox):
         arm_down()
         angle = close_claw()
     color = arm_up(waitfor_sensor=True)
+    if color not in dropzones.values():
+        arm_down()
+        open_claw()
+        arm_up(waitfor_sensor=False)
+        mailbox['mbox'].send("pickupAvaiable")
+        time.sleep(1)
+        return None
+    else:
+        mailbox['mbox'].send("pickupAvaiable")
     return color
 
 def drop(mailbox, color : Color):
