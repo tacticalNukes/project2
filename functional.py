@@ -69,13 +69,16 @@ def reset_to_pickupzone(_type = ""):
     else:
         arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
 
-def mesure():
+def mesure(type):
     """Returns degress for total arm rotation"""
     global total_angle
     arm_rot_motor.run(speed=ROT_SPEED)
+    colors = []
+    if type == "host" : colors = COLORS[:3]
+    else : colors = COLORS[3:]
     while not touch_sensor.pressed():
         tmp = color_sensor.color()
-        if tmp in COLORS and tmp not in dropzones.values():
+        if tmp in colors and tmp not in dropzones.values():
             dropzones[arm_rot_motor.angle()] = tmp
             ev3.speaker.beep(frequency=500, duration=50)
     total_angle = arm_rot_motor.angle()
@@ -105,7 +108,9 @@ def initiation():
         reset_to_pickupzone()     
     mesure()
     reset_to_waitpos()
-    if mailbox["type"] == "host" : mailbox["mbox"].send("Done")
+    if mailbox["type"] == "host":
+        mailbox["mbox"].send("Done")
+        mailbox["mbox"].wait_new()
     return mailbox
 
 def mail_pickupavalible(mailbox):
