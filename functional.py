@@ -38,7 +38,7 @@ def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=340, then=Stop.HOLD, wait=True)
+        arm_raise_motor.run_target(speed=60, target_angle=260, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
         ev3.light.on(color)
