@@ -39,7 +39,7 @@ def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=-200, then=Stop.HOLD, wait=True)
+        arm_raise_motor.run_target(speed=60, target_angle=-220, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
         ev3.light.on(color)
@@ -58,7 +58,9 @@ def close_claw():
 def rotateToColor(color : Color):
     global total_angle
     print(find_key(dropzones, color), color)
-    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
+    angle = find_key(dropzones, color)
+    if angle == None : return
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=angle, wait=True)
 
 def reset_to_pickupzone(_type = ""):
     if _type == "host":
@@ -89,7 +91,7 @@ def initiation():
     global COLORS
     mailbox = connection.connect(ev3)
     arm_down()
-    time.sleep(1)
+    time.sleep(2)
     arm_raise_motor.reset_angle(angle=0)
     arm_up(waitfor_sensor=False)
     close_claw()
@@ -163,6 +165,8 @@ def pickup(mailbox):
     return color
 
 def drop(color : Color):
+    if color not in dropzones.values():
+        return
     rotateToColor(color=color)
     arm_down()
     open_claw()
