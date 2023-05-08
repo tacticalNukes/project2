@@ -142,6 +142,11 @@ def pickup(mailbox):
         arm_down()
         angle = close_claw()
     color = arm_up(waitfor_sensor=True)
+    if color not in dropzones.values():
+        arm_down()
+        open_claw()
+        arm_up(waitfor_sensor=False)
+    mailbox["mbox"].send("donepickingup")
     return color
 
 def drop(color : Color):
