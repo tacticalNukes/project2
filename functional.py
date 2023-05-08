@@ -135,7 +135,6 @@ def pickup(mailbox):
         open_claw()
         arm_up(waitfor_sensor=False)
         if i == 3:
-            #mailbox["mbox"].send("Wait for new order")
             time.sleep(15) # ordern har kommit
             i = 0
         else:
