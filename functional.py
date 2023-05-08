@@ -98,7 +98,7 @@ def initiation():
     if mailbox["type"] == "client":
         COLORS = [Color.YELLOW, Color.GREEN]
         arm_rot_motor.reset_angle(angle=0)
-        reset_to_waitpos()
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=300, then=Stop.HOLD, wait=True)
         mailbox["mbox"].wait_new()
         reset_to_pickupzone()
         mailbox["mbox"].send("pickingup")
