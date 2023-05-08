@@ -77,6 +77,7 @@ def mesure():
         tmp = color_sensor.color()
         if tmp in COLORS and tmp not in dropzones.values():
             dropzones[arm_rot_motor.angle()] = tmp
+            ev3.speaker.beep(frequency=500, duration=50)
     total_angle = arm_rot_motor.angle()
     print(total_angle)
     print("Dropzones: ")
@@ -130,6 +131,10 @@ def checkobject_ispresent(color : Color):
 def reset_to_waitpos():
     global total_angle
     arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle/2, then=Stop.HOLD, wait=True)
+
+def ordertime():
+
+    pass
 
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
