@@ -86,13 +86,13 @@ def find_key(input_dict, value):
 
 def initiation():
     mailbox = connection.connect(ev3)
-    arm_raise_motor.run_until_stalled(speed=-100, then=Stop.HOLD, duty_limit=70)
+    arm_raise_motor.run_until_stalled(speed=-150, then=Stop.HOLD, duty_limit=50)
     arm_raise_motor.reset_angle(angle=0)
     close_claw()
     claw_motor.reset_angle(angle=0)
     if mailbox["type"] == "client":
         arm_rot_motor.reset_angle(angle=0)
-        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=100, then=Stop.HOLD, wait=True)
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=200, then=Stop.HOLD, wait=True)
         mailbox["mbox"].wait_new()
         arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
     mesure()
