@@ -39,7 +39,7 @@ def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=-220, then=Stop.HOLD, wait=True)
+        arm_raise_motor.run_target(speed=60, target_angle=-217, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
         ev3.light.on(color)
@@ -103,8 +103,8 @@ def initiation():
         mailbox["mbox"].send("pickingup")
         reset_to_pickupzone()     
     mesure()
-    if mailbox["type"] == "host" : mailbox["mbox"].send("Done")
     reset_to_waitpos()
+    if mailbox["type"] == "host" : mailbox["mbox"].send("Done")
     return mailbox
 
 def mail_pickupavalible(mailbox):
