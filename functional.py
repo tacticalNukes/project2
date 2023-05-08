@@ -122,10 +122,11 @@ def checkobject_ispresent(color : Color):
     return color
 
 def pickup(mailbox):
-    while mailbox["mbox"].read() != "Other" and mailbox["type"] == "client":
+    while mailbox["mbox"].read() == "Other":
         time.sleep(1)
     print(mailbox["mbox"].read())
     reset_to_pickupzone()
+    mailbox["mbox"].send("pickingup")
     open_claw()
     arm_down()
     angle = close_claw()
@@ -138,7 +139,6 @@ def pickup(mailbox):
         open_claw()
         arm_up(waitfor_sensor=False)
         if i == 3:
-            #mailbox["mbox"].send("Wait for new order")
             time.sleep(15) # ordern har kommit
             i = 0
         else:
