@@ -91,6 +91,7 @@ def initiation():
     arm_down()
     time.sleep(1)
     arm_raise_motor.reset_angle(angle=0)
+    arm_up(waitfor_sensor=False)
     close_claw()
     claw_motor.reset_angle(angle=0)
     if mailbox["type"] == "client":
