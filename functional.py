@@ -91,9 +91,10 @@ def initiation():
     close_claw()
     claw_motor.reset_angle(angle=0)
     if mailbox["type"] == "client":
-        color_sensor.lights.off()
+        arm_rot_motor.reset_angle(angle=0)
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=100, then=Stop.HOLD, wait=True)
         mailbox["mbox"].wait_new()
-        color_sensor.lights.on()
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
     mesure()
     reset_to_pickupzone(mailbox["type"])
     return mailbox
