@@ -38,11 +38,12 @@ def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=260, then=Stop.HOLD, wait=True)
+        arm_raise_motor.run_target(speed=60, target_angle=-150, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
+            print(arm_raise_motor.angle())
         ev3.light.on(color)
-    arm_raise_motor.run_target(speed=-120, target_angle=200, then=Stop.HOLD, wait=True)
+    arm_raise_motor.run_target(speed=-120, target_angle=-300, then=Stop.HOLD, wait=True)
 
     if waitfor_sensor : return color
 
@@ -69,13 +70,14 @@ def reset_to_pickupzone(_type = ""):
 def mesure():
     """Returns degress for total arm rotation"""
     global total_angle
-    arm_rot_motor.reset_angle(angle=0)
     arm_rot_motor.run(speed=ROT_SPEED)
     while not touch_sensor.pressed():
         tmp = color_sensor.color()
         if tmp in COLORS and tmp not in dropzones.values():
-            dropzones[arm_rot_motor.angle()] = tmp
+            pass
+            #dropzones[arm_rot_motor.angle()] = tmp
     total_angle = arm_rot_motor.angle()
+    print(total_angle)
     print("Dropzones: ")
     print(dropzones)
     arm_rot_motor.stop()
@@ -86,7 +88,8 @@ def find_key(input_dict, value):
 
 def initiation():
     mailbox = connection.connect(ev3)
-    arm_raise_motor.run_until_stalled(speed=-150, then=Stop.HOLD, duty_limit=50)
+    arm_down()
+    time.sleep(1)
     arm_raise_motor.reset_angle(angle=0)
     close_claw()
     claw_motor.reset_angle(angle=0)
