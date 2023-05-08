@@ -86,7 +86,7 @@ def find_key(input_dict, value):
 
 def initiation():
     mailbox = connection.connect(ev3)
-    arm_raise_motor.run_until_stalled(speed=200, then=Stop.HOLD, duty_limit=30)
+    arm_raise_motor.run_until_stalled(speed=-100, then=Stop.HOLD, duty_limit=70)
     arm_raise_motor.reset_angle(angle=0)
     close_claw()
     claw_motor.reset_angle(angle=0)
