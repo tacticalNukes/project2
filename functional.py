@@ -19,7 +19,7 @@ claw_motor = Motor(Port.A)
 color_sensor = ColorSensor(Port.S2)
 touch_sensor = TouchSensor(Port.S1)
 
-COLORS = [Color.YELLOW, Color.GREEN, Color.RED, Color.BLUE]
+COLORS = []
 dropzones = {}
 
 ROT_SPEED = 150
@@ -43,7 +43,7 @@ def arm_up(waitfor_sensor):
             color = getColorOfObject()
             print(arm_raise_motor.angle())
         ev3.light.on(color)
-    arm_raise_motor.run_target(speed=-120, target_angle=-300, then=Stop.HOLD, wait=True)
+    arm_raise_motor.run_target(speed=-120, target_angle=-380, then=Stop.HOLD, wait=True)
 
     if waitfor_sensor : return color
 
@@ -87,6 +87,7 @@ def find_key(input_dict, value):
     return next((k for k, v in input_dict.items() if v == value), None)
 
 def initiation():
+    global COLORS
     mailbox = connection.connect(ev3)
     arm_down()
     time.sleep(1)
@@ -94,7 +95,9 @@ def initiation():
     arm_up(waitfor_sensor=False)
     close_claw()
     claw_motor.reset_angle(angle=0)
+    COLORS = [Color.RED, Color.BLUE]
     if mailbox["type"] == "client":
+        COLORS = [Color.YELLOW, Color.GREEN]
         arm_rot_motor.reset_angle(angle=0)
         arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=200, then=Stop.HOLD, wait=True)
         mailbox["mbox"].wait_new()
