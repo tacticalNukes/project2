@@ -39,7 +39,7 @@ def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=-217, then=Stop.HOLD, wait=True)
+        arm_raise_motor.run_target(speed=60, target_angle=-220, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
         ev3.light.on(color)
@@ -144,7 +144,7 @@ def ordertime():
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
         reset_to_waitpos()
-        time.sleep(1)
+        time.sleep(0.5)
 
     mailbox["mbox"].send("pickingup")
 
@@ -172,6 +172,7 @@ def pickup(mailbox):
         arm_up(waitfor_sensor=False)
         reset_to_waitpos()
     mailbox["mbox"].send("donepickingup")
+    time.sleep(1)
     return color
 
 def drop(color : Color):
