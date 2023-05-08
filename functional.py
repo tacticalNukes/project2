@@ -135,7 +135,7 @@ def pickup(mailbox):
         open_claw()
         arm_up(waitfor_sensor=False)
         if i == 3:
-            time.sleep(15) # ordern har kommit
+            time.sleep(int(input("How many seconds until the next order has arrived? : "))) # ordern har kommit
             i = 0
         else:
             time.sleep(3)
