@@ -74,8 +74,7 @@ def mesure():
     while not touch_sensor.pressed():
         tmp = color_sensor.color()
         if tmp in COLORS and tmp not in dropzones.values():
-            pass
-            #dropzones[arm_rot_motor.angle()] = tmp
+            dropzones[arm_rot_motor.angle()] = tmp
     total_angle = arm_rot_motor.angle()
     print(total_angle)
     print("Dropzones: ")
@@ -99,11 +98,12 @@ def initiation():
     if mailbox["type"] == "client":
         COLORS = [Color.YELLOW, Color.GREEN]
         arm_rot_motor.reset_angle(angle=0)
-        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=200, then=Stop.HOLD, wait=True)
+        reset_to_waitpos()
         mailbox["mbox"].wait_new()
-        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
+        reset_to_pickupzone()
+        mailbox["mbox"].send("pickingup")
     mesure()
-    reset_to_pickupzone(mailbox["type"])
+    reset_to_waitpos()
     return mailbox
 
 def mail_pickupavalible(mailbox):
@@ -126,8 +126,13 @@ def checkobject_ispresent(color : Color):
     arm_up(waitfor_sensor=False)
     return color
 
+def reset_to_waitpos():
+    global total_angle
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle/2, then=Stop.HOLD, wait=True)
+
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
+        reset_to_waitpos()
         time.sleep(1)
 
     mailbox["mbox"].send("pickingup")
@@ -154,6 +159,7 @@ def pickup(mailbox):
         arm_down()
         open_claw()
         arm_up(waitfor_sensor=False)
+        reset_to_waitpos()
     mailbox["mbox"].send("donepickingup")
     return color
 
