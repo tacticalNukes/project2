@@ -19,7 +19,8 @@ claw_motor = Motor(Port.A)
 color_sensor = ColorSensor(Port.S2)
 touch_sensor = TouchSensor(Port.S1)
 
-COLORS = []
+
+COLORS = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN]
 dropzones = {}
 
 ROT_SPEED = 150
@@ -38,10 +39,9 @@ def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=-150, then=Stop.HOLD, wait=True)
+        arm_raise_motor.run_target(speed=60, target_angle=-200, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
-            print(arm_raise_motor.angle())
         ev3.light.on(color)
     arm_raise_motor.run_target(speed=-120, target_angle=-380, then=Stop.HOLD, wait=True)
 
@@ -94,15 +94,14 @@ def initiation():
     arm_up(waitfor_sensor=False)
     close_claw()
     claw_motor.reset_angle(angle=0)
-    COLORS = [Color.RED, Color.BLUE]
     if mailbox["type"] == "client":
-        COLORS = [Color.YELLOW, Color.GREEN]
         arm_rot_motor.reset_angle(angle=0)
         arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=300, then=Stop.HOLD, wait=True)
         mailbox["mbox"].wait_new()
-        reset_to_pickupzone()
         mailbox["mbox"].send("pickingup")
+        reset_to_pickupzone()     
     mesure()
+    if mailbox["type"] == "host" : mailbox["mbox"].send("Done")
     reset_to_waitpos()
     return mailbox
 
