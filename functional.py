@@ -106,7 +106,7 @@ def initiation():
         mailbox["mbox"].wait_new()
         mailbox["mbox"].send("pickingup")
         reset_to_pickupzone()     
-    mesure()
+    mesure(mailbox["type"])
     reset_to_waitpos()
     if mailbox["type"] == "host":
         mailbox["mbox"].send("Done")
