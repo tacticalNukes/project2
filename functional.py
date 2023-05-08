@@ -91,7 +91,9 @@ def initiation():
     close_claw()
     claw_motor.reset_angle(angle=0)
     if mailbox["type"] == "client":
+        color_sensor.lights.off()
         mailbox["mbox"].wait_new()
+        color_sensor.lights.on()
     mesure()
     reset_to_pickupzone(mailbox["type"])
     return mailbox
@@ -119,6 +121,8 @@ def checkobject_ispresent(color : Color):
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
         time.sleep(1)
+
+    mailbox["mbox"].send("pickingup")
 
     reset_to_pickupzone(mailbox["type"])
     open_claw()
