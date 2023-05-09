@@ -137,9 +137,20 @@ def reset_to_waitpos():
     global total_angle
     arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle/2, then=Stop.HOLD, wait=True)
 
-def ordertime():
 
-    pass
+def ordertime():
+    ev3.screen.clear()
+    seconds = 0
+    ev3.light.on(Color.YELLOW)
+    while Button.CENTER not in ev3.buttons.pressed():
+        if Button.UP == ev3.buttons.pressed():
+            seconds += 1
+            ev3.screen.draw_text(0, 0, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+        if Button.DOWN == ev3.buttons.pressed():
+            if seconds > 0:
+                seconds -= 1
+                ev3.screen.draw_text(0, 0, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+    time.sleep(seconds)   
 
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
