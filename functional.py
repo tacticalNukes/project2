@@ -19,7 +19,8 @@ claw_motor = Motor(Port.A)
 color_sensor = ColorSensor(Port.S2)
 touch_sensor = TouchSensor(Port.S1)
 
-COLORS = [Color.YELLOW, Color.GREEN, Color.RED, Color.BLUE]
+
+COLORS = [Color.RED, Color.BLUE, Color.YELLOW, Color.GREEN]
 dropzones = {}
 
 ROT_SPEED = 150
@@ -38,11 +39,11 @@ def arm_up(waitfor_sensor):
     print("Arm Up")
     color = None
     if waitfor_sensor:
-        arm_raise_motor.run_target(speed=60, target_angle=340, then=Stop.HOLD, wait=True)
+        arm_raise_motor.run_target(speed=60, target_angle=-220, then=Stop.HOLD, wait=True)
         while color == None:
             color = getColorOfObject()
         ev3.light.on(color)
-    arm_raise_motor.run_until_stalled(speed=-120, then=Stop.HOLD, duty_limit=30)
+    arm_raise_motor.run_target(speed=-120, target_angle=-380, then=Stop.HOLD, wait=True)
 
     if waitfor_sensor : return color
 
@@ -51,13 +52,15 @@ def open_claw():
     claw_motor.run_target(speed=80, target_angle=-90, then=Stop.HOLD, wait=True)
 
 def close_claw():
-    claw_motor.run_until_stalled(speed=50, then=Stop.HOLD, duty_limit=80)
+    claw_motor.run_until_stalled(speed=50, then=Stop.HOLD, duty_limit=100)
     return claw_motor.angle()
 
 def rotateToColor(color : Color):
     global total_angle
     print(find_key(dropzones, color), color)
-    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=find_key(dropzones, color), wait=True)
+    angle = find_key(dropzones, color)
+    if angle == None : return
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=angle, wait=True)
 
 def reset_to_pickupzone(_type = ""):
     if _type == "host":
@@ -66,16 +69,20 @@ def reset_to_pickupzone(_type = ""):
     else:
         arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=0, then=Stop.HOLD, wait=True)
 
-def mesure():
+def mesure(type):
     """Returns degress for total arm rotation"""
     global total_angle
-    arm_rot_motor.reset_angle(angle=0)
     arm_rot_motor.run(speed=ROT_SPEED)
+    colors = []
+    if type == "host" : colors = COLORS[:3]
+    else : colors = COLORS[3:]
     while not touch_sensor.pressed():
         tmp = color_sensor.color()
-        if tmp in COLORS and tmp not in dropzones.values():
+        if tmp in colors and tmp not in dropzones.values():
             dropzones[arm_rot_motor.angle()] = tmp
+            ev3.speaker.beep(frequency=500, duration=50)
     total_angle = arm_rot_motor.angle()
+    print(total_angle)
     print("Dropzones: ")
     print(dropzones)
     arm_rot_motor.stop()
@@ -85,19 +92,25 @@ def find_key(input_dict, value):
     return next((k for k, v in input_dict.items() if v == value), None)
 
 def initiation():
+    global COLORS
     mailbox = connection.connect(ev3)
-    arm_up(waitfor_sensor=False)
+    arm_down()
+    time.sleep(2)
     arm_raise_motor.reset_angle(angle=0)
+    arm_up(waitfor_sensor=False)
     close_claw()
     claw_motor.reset_angle(angle=0)
     if mailbox["type"] == "client":
+        arm_rot_motor.reset_angle(angle=0)
+        arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=300, then=Stop.HOLD, wait=True)
         mailbox["mbox"].wait_new()
-    mesure()
-    if mailbox["type"] == "client":
-        reset_to_pickupzone(mailbox["type"])
-    else:
-        reset_to_pickupzone(mailbox["type"])
-        mailbox["mbox"].send("Other")
+        mailbox["mbox"].send("pickingup")
+        reset_to_pickupzone()     
+    mesure(mailbox["type"])
+    reset_to_waitpos()
+    if mailbox["type"] == "host":
+        mailbox["mbox"].send("Done")
+        mailbox["mbox"].wait_new()
     return mailbox
 
 def mail_pickupavalible(mailbox):
@@ -120,53 +133,48 @@ def checkobject_ispresent(color : Color):
     arm_up(waitfor_sensor=False)
     return color
 
+def reset_to_waitpos():
+    global total_angle
+    arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle/2, then=Stop.HOLD, wait=True)
+
+def ordertime():
+
+    pass
+
 def pickup(mailbox):
-    while mailbox["mbox"].read() == "Other": # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
-        time.sleep(1)
-    wait_mail("pickupAvaiable",mailbox,ev3)
-    print(mailbox["mbox"].read())
+    while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
+        reset_to_waitpos()
+        time.sleep(0.5)
+
+    mailbox["mbox"].send("pickingup")
+
     reset_to_pickupzone(mailbox["type"])
     open_claw()
     arm_down()
     angle = close_claw()
-    if mailbox["type"] == "client":
-        color = arm_up(waitfor_sensor=True)
-        return color
+
     i = 0
-    while abs(angle) < 5:
+    while abs(angle) < 10:
         i = i+1
         open_claw()
         arm_up(waitfor_sensor=False)
         if i == 3:
-            #mailbox["mbox"].send("Wait for new order")
-            time.sleep(15) # ordern har kommit
+            time.sleep(int(input("How many seconds until the next order has arrived? : "))) # ordern har kommit
             i = 0
         else:
             time.sleep(3)
         arm_down()
         angle = close_claw()
     color = arm_up(waitfor_sensor=True)
-    if color not in dropzones.values():
-        arm_down()
-        open_claw()
-        arm_up(waitfor_sensor=False)
-        mailbox['mbox'].send("pickupAvaiable")
-        time.sleep(1)
-        return None
-    else:
-        mailbox['mbox'].send("pickupAvaiable")
     return color
 
-def drop(mailbox, color : Color):
-    dropspot = rotateToColor(color=color)
+def drop(color : Color):
+    if color not in dropzones.values():
+        return
+    rotateToColor(color=color)
     arm_down()
     open_claw()
     arm_up(waitfor_sensor=False)
-    if mailbox["type"] == "host":
-        if dropspot == "Other":
-            mailbox["mbox"].send("Other")
-        else:
-            mailbox["mbox"].send("Total Angle")
 
 def check_buttons():
     if Button.LEFT in ev3.buttons.pressed() and len(dropzones) <= 1:
