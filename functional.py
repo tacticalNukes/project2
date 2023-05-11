@@ -137,9 +137,20 @@ def reset_to_waitpos():
     global total_angle
     arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle/2, then=Stop.HOLD, wait=True)
 
+
 def ordertime():
-    ##Fixa även så client roboten åker åt sidan i starten så de kan stå nära varandra
-    pass
+    ev3.screen.clear()
+    seconds = 0
+    ev3.light.on(Color.YELLOW)
+    while Button.CENTER not in ev3.buttons.pressed():
+        if Button.UP == ev3.buttons.pressed():
+            seconds += 1
+            ev3.screen.draw_text(0, 0, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+        if Button.DOWN == ev3.buttons.pressed():
+            if seconds > 0:
+                seconds -= 1
+                ev3.screen.draw_text(0, 0, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+    time.sleep(seconds)   
 
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
@@ -166,13 +177,6 @@ def pickup(mailbox):
         arm_down()
         angle = close_claw()
     color = arm_up(waitfor_sensor=True)
-    if color not in dropzones.values():
-        arm_down()
-        open_claw()
-        arm_up(waitfor_sensor=False)
-        reset_to_waitpos()
-    mailbox["mbox"].send("donepickingup")
-    time.sleep(1)
     return color
 
 def drop(color : Color):
