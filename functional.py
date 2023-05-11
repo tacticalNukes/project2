@@ -172,7 +172,6 @@ def pickup(mailbox):
     open_claw()
     arm_down()
     angle = close_claw()
-
     i = 0
     while abs(angle) < 10:
         i = i+1
