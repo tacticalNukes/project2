@@ -206,8 +206,10 @@ def drop(color : Color):
 
 def check_buttons():
     if Button.LEFT in ev3.buttons.pressed() and len(dropzones) <= 1:
-        a_color = dropzones.values()[0]
-        return a_color
+        print(dropzones.values())
+        a_color = dropzones.values()
+        print(a_color[0])
+        return a_color[0]
     elif Button.UP in ev3.buttons.pressed() and len(dropzones) <= 2:
         a_color = dropzones.values()[1]
         return a_color
