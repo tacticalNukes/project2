@@ -181,7 +181,11 @@ def pickup(mailbox):
             time.sleep(ordertime()) # ordern har kommit
             i = 0
         else:
-            time.sleep(3)
+            count = 0
+            while count <= 3:
+                count = count + 1
+                checkobject_ispresent(check_buttons())
+                time.sleep(1)
         arm_down()
         angle = close_claw()
     color = arm_up(waitfor_sensor=True)
