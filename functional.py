@@ -138,7 +138,7 @@ def reset_to_waitpos():
     arm_rot_motor.run_target(speed=ROT_SPEED, target_angle=total_angle/2, then=Stop.HOLD, wait=True)
 
 def ordertime():
-
+    ##Fixa även så client roboten åker åt sidan i starten så de kan stå nära varandra
     pass
 
 def pickup(mailbox):
