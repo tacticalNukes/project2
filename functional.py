@@ -157,7 +157,9 @@ def ordertime():
                 ev3.screen.draw_text(50, 50, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
                 print(seconds)
             time.sleep(1)
-    return seconds   
+    ev3.screen.clear()
+    ev3.screen.draw_text(50, 50, "Waiting " + str(seconds) + " seconds..." , text_color=Color.BLACK, background_color=None)
+    return seconds
 
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
