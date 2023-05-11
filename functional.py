@@ -150,7 +150,7 @@ def ordertime():
             if seconds > 0:
                 seconds -= 1
                 ev3.screen.draw_text(0, 0, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
-    time.sleep(seconds)   
+    return seconds   
 
 def pickup(mailbox):
     while not mail_pickupavalible(mailbox=mailbox): # Lägg till alans funktion här, värdet måste uppdateras, "Total angle" är bevarat från förra gången
@@ -170,7 +170,7 @@ def pickup(mailbox):
         open_claw()
         arm_up(waitfor_sensor=False)
         if i == 3:
-            time.sleep(int(input("How many seconds until the next order has arrived? : "))) # ordern har kommit
+            time.sleep(ordertime()) # ordern har kommit
             i = 0
         else:
             time.sleep(3)
