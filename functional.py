@@ -145,11 +145,13 @@ def ordertime():
     while Button.CENTER not in ev3.buttons.pressed():
         if Button.UP == ev3.buttons.pressed():
             seconds += 1
-            ev3.screen.draw_text(0, 0, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+            ev3.screen.draw_text(50, 50, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+            print(seconds)
         if Button.DOWN == ev3.buttons.pressed():
             if seconds > 0:
                 seconds -= 1
-                ev3.screen.draw_text(0, 0, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+                ev3.screen.draw_text(50, 50, str(seconds) + " seconds" , text_color=Color.BLACK, background_color=None)
+                print(seconds)
     return seconds   
 
 def pickup(mailbox):
