@@ -74,8 +74,8 @@ def mesure(type):
     global total_angle
     arm_rot_motor.run(speed=ROT_SPEED)
     colors = []
-    if type == "host" : colors = COLORS[:3]
-    else : colors = COLORS[3:]
+    if type == "host" : colors = COLORS[:2]
+    else : colors = COLORS[2:]
     while not touch_sensor.pressed():
         tmp = color_sensor.color()
         if tmp in colors and tmp not in dropzones.values():
